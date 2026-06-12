@@ -53,7 +53,6 @@ class SignOcaRequest(models.Model):
     signer_ids = fields.One2many(
         "sign.oca.request.signer",
         inverse_name="request_id",
-        auto_join=True,
         copy=True,
         string="Signers",
     )
@@ -100,9 +99,8 @@ class SignOcaRequest(models.Model):
                 lambda x: x.partner_id == user.partner_id.commercial_partner_id
             )
             record.signer_id = (
-                fields.first(user_diff_roles.filtered(lambda x: x.is_allow_signature))
-                if user_diff_roles.filtered(lambda x: x.is_allow_signature)
-                else fields.first(user_diff_roles)
+                user_diff_roles.filtered(lambda x: x.is_allow_signature)[:1]
+                or user_diff_roles[:1]
             )
 
     @api.depends(

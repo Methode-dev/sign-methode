@@ -4,7 +4,7 @@ from urllib import parse
 from odoo import _, http
 from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
-from odoo.osv import expression
+from odoo.fields import Domain
 
 from odoo.addons.base.models.assetsbundle import AssetsBundle
 from odoo.addons.portal.controllers.portal import CustomerPortal
@@ -83,7 +83,7 @@ class PortalSign(CustomerPortal):
 
     @http.route(
         ["/sign_oca/info/<int:signer_id>/<string:access_token>"],
-        type="json",
+        type="jsonrpc",
         auth="public",
         website=True,
     )
@@ -98,7 +98,7 @@ class PortalSign(CustomerPortal):
 
     @http.route(
         ["/sign_oca/sign/<int:signer_id>/<string:access_token>"],
-        type="json",
+        type="jsonrpc",
         auth="public",
         website=True,
     )
@@ -150,7 +150,7 @@ class PortalSign(CustomerPortal):
         searchbar_filters = self._get_my_sign_requests_searchbar_filters()
         filterby = kwargs.get("filterby") or "all"
         domain = searchbar_filters.get(filterby, searchbar_filters["all"])["domain"]
-        domain = expression.AND([domain, self.get_sign_requests_domain(request)])
+        domain = Domain.AND([domain, self.get_sign_requests_domain(request)])
         SignRequests = request.env["sign.oca.request.signer"].sudo()
         pager_values = portal_pager(
             url="/my/sign_requests",
