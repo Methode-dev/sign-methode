@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Whoever issues invoices may send them for signature. -->
+    <record id="account.group_account_invoice" model="res.groups">
+        <field name="implied_ids" eval="[Command.link(ref('sign_methode.group_user'))]" />
+    </record>
+</odoo>

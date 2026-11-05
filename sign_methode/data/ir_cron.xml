@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="cron_expire" model="ir.cron">
+        <field name="name">Signatures: close expired requests</field>
+        <field name="model_id" ref="model_sign_methode_request" />
+        <field name="state">code</field>
+        <field name="code">model._cron_expire()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+    <record id="cron_remind" model="ir.cron">
+        <field name="name">Signatures: send reminders</field>
+        <field name="model_id" ref="model_sign_methode_request" />
+        <field name="state">code</field>
+        <field name="code">model._cron_remind()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_request_user,sign.methode.request user,model_sign_methode_request,group_user,1,1,1,1
+access_signer_user,sign.methode.signer user,model_sign_methode_signer,group_user,1,1,1,1
+access_item_user,sign.methode.item user,model_sign_methode_item,group_user,1,0,0,0
+access_event_user,sign.methode.event user,model_sign_methode_event,group_user,1,0,0,0
+access_template_user,sign.methode.template user,model_sign_methode_template,group_user,1,0,0,0
+access_template_manager,sign.methode.template manager,model_sign_methode_template,group_manager,1,1,1,1
+access_template_field_user,sign.methode.template.field user,model_sign_methode_template_field,group_user,1,0,0,0
+access_template_field_manager,sign.methode.template.field manager,model_sign_methode_template_field,group_manager,1,1,1,1
+access_role_internal,sign.methode.role internal,model_sign_methode_role,base.group_user,1,0,0,0
+access_role_manager,sign.methode.role manager,model_sign_methode_role,group_manager,1,1,1,1
+access_send_user,sign.methode.send user,model_sign_methode_send,group_user,1,1,1,1
+access_send_signer_user,sign.methode.send.signer user,model_sign_methode_send_signer,group_user,1,1,1,1
+access_signer_token_system,sign.methode.signer.token system,model_sign_methode_signer_token,base.group_system,1,0,0,0

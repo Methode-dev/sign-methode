@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Links carry a one-off token: these e-mails are deleted once sent
+         (auto_delete) so the token only lives in the recipient's inbox. -->
+    <record id="mail_template_invite" model="mail.template">
+        <field name="name">Signature: invitation</field>
+        <field name="model_id" ref="model_sign_methode_signer" />
+        <field
+            name="subject"
+        >{{ 'Reminder: ' if ctx.get('sign_kind') == 'remind' else '' }}{{ object.request_id.user_id.name or object.request_id.company_id.name }} asks you to sign "{{ object.request_id.name }}"</field>
+        <field name="email_from">{{ object.request_id.company_id.email_formatted or user.email_formatted }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="auto_delete" eval="True" />
+        <field name="body_html" type="html">
+<div style="font-family: Nunito, Helvetica, Arial, sans-serif; color: #111827; max-width: 560px;">
+    <p style="margin: 0 0 16px;">Hello <t t-out="object.name or ''">Alice</t>,</p>
+    <p style="margin: 0 0 16px;">
+        <strong t-out="object.request_id.user_id.name or object.request_id.company_id.name or ''">Marc</strong>
+        sent you <strong t-out="object.request_id.name or ''">Contract</strong> to sign.
+    </p>
+    <t t-if="object.request_id.message">
+        <blockquote style="margin: 0 0 16px; padding: 12px 16px; background: #F4F7FE; border-radius: 8px; color: #5F6674;" t-out="object.request_id.message or ''">Message</blockquote>
+    </t>
+    <p style="margin: 24px 0;">
+        <a t-att-href="ctx.get('sign_url')" style="background: #0E58F0; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">Review and sign</a>
+    </p>
+    <p style="margin: 0 0 8px; color: #5F6674; font-size: 13px;">
+        <t t-if="object.otp_channel != 'none'">For your security, a one-time code will be sent to you before you can open the document.</t>
+        <t t-if="object.request_id.expire_on"> This request is valid until <t t-out="format_date(object.request_id.expire_on)">2026-12-01</t>.</t>
+    </p>
+    <p style="margin: 0; color: #5F6674; font-size: 13px;">This link is personal: please do not forward this e-mail.</p>
+</div>
+        </field>
+    </record>
+
+    <record id="mail_template_otp" model="mail.template">
+        <field name="name">Signature: verification code</field>
+        <field name="model_id" ref="model_sign_methode_signer" />
+        <field name="subject">Your signature code: {{ ctx.get('sign_otp') }}</field>
+        <field name="email_from">{{ object.request_id.company_id.email_formatted or user.email_formatted }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="auto_delete" eval="True" />
+        <field name="body_html" type="html">
+<div style="font-family: Nunito, Helvetica, Arial, sans-serif; color: #111827; max-width: 560px;">
+    <p style="margin: 0 0 16px;">Hello <t t-out="object.name or ''">Alice</t>,</p>
+    <p style="margin: 0 0 16px;">Your code to sign <strong t-out="object.request_id.name or ''">Contract</strong> is:</p>
+    <p style="margin: 0 0 16px; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #093DA8;" t-out="ctx.get('sign_otp') or ''">123456</p>
+    <p style="margin: 0; color: #5F6674; font-size: 13px;">It is valid for 10 minutes. If you did not ask for it, ignore this e-mail.</p>
+</div>
+        </field>
+    </record>
+
+    <record id="mail_template_completed" model="mail.template">
+        <field name="name">Signature: completed</field>
+        <field name="model_id" ref="model_sign_methode_signer" />
+        <field name="subject">"{{ object.request_id.name }}" is signed</field>
+        <field name="email_from">{{ object.request_id.company_id.email_formatted or user.email_formatted }}</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="auto_delete" eval="True" />
+        <field name="body_html" type="html">
+<div style="font-family: Nunito, Helvetica, Arial, sans-serif; color: #111827; max-width: 560px;">
+    <p style="margin: 0 0 16px;">Hello <t t-out="object.name or ''">Alice</t>,</p>
+    <p style="margin: 0 0 16px;">Every party has signed <strong t-out="object.request_id.name or ''">Contract</strong>. The signed document is attached; it carries an electronic seal and a certificate of completion.</p>
+    <p style="margin: 24px 0;">
+        <a t-att-href="ctx.get('sign_url')" style="background: #0E58F0; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">View the signed document</a>
+    </p>
+</div>
+        </field>
+    </record>
+</odoo>

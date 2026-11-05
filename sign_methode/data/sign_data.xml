@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="seq_sign_request" model="ir.sequence">
+        <field name="name">Signature Request</field>
+        <field name="code">sign.methode.request</field>
+        <field name="prefix">SIGN/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False" />
+    </record>
+    <record id="role_customer" model="sign.methode.role">
+        <field name="name">Customer</field>
+        <field name="sequence">10</field>
+        <field name="color">4</field>
+        <field name="partner_expression">{{ object.partner_id.id }}</field>
+    </record>
+    <record id="role_company" model="sign.methode.role">
+        <field name="name">Company</field>
+        <field name="sequence">20</field>
+        <field name="color">10</field>
+        <field name="partner_expression">{{ object.env.user.partner_id.id }}</field>
+    </record>
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="signer_page" name="Signature: signing page">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_header" t-value="True" />
+            <t t-set="no_footer" t-value="True" />
+            <t t-set="pageName" t-value="'o_sign_methode_page'" />
+            <t t-set="title" t-value="document" />
+            <owl-component
+                name="sign_methode.signer_app"
+                t-att-props="json.dumps({'token': token, 'logo': '/web/binary/company_logo?company=%s' % company.id})"
+            />
+        </t>
+    </template>
+
+    <template id="signer_invalid" name="Signature: invalid link">
+        <t t-call="web.frontend_layout">
+            <t t-set="no_header" t-value="True" />
+            <t t-set="no_footer" t-value="True" />
+            <t t-set="pageName" t-value="'o_sign_methode_page'" />
+            <div class="o_sign_app">
+                <main class="o_sign_main">
+                    <section class="o_sign_card">
+                        <div class="o_sign_card_icon o_sign_card_icon_muted"><i class="fa fa-chain-broken" /></div>
+                        <h1 class="o_sign_h1">This link is no longer valid</h1>
+                        <p class="o_sign_muted">Each e-mail carries a new personal link and replaces the previous one. Open the most recent e-mail you received, or ask the sender to send the document again.</p>
+                    </section>
+                </main>
+            </div>
+        </t>
+    </template>
+</odoo>

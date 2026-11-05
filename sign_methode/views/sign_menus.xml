@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="action_sign_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'sign_methode', 'bin_size': False}</field>
+    </record>
+
+    <menuitem
+        id="menu_sign_root"
+        name="Signatures"
+        web_icon="sign_methode,static/description/icon.png"
+        groups="group_user"
+        sequence="45"
+    />
+    <menuitem id="menu_sign_requests" name="Requests" parent="menu_sign_root" action="action_sign_request" sequence="10" />
+    <menuitem id="menu_sign_templates" name="Templates" parent="menu_sign_root" action="action_sign_template" sequence="20" />
+    <menuitem id="menu_sign_config" name="Configuration" parent="menu_sign_root" groups="group_manager" sequence="90" />
+    <menuitem id="menu_sign_settings" name="Settings" parent="menu_sign_config" action="action_sign_settings" groups="base.group_system" sequence="10" />
+    <menuitem id="menu_sign_roles" name="Roles" parent="menu_sign_config" action="action_sign_role" sequence="20" />
+</odoo>

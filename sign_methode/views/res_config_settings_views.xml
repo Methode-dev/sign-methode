@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.sign_methode</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Signatures" name="sign_methode" groups="base.group_system">
+                    <block title="Electronic seal" name="sign_methode_seal">
+                        <setting
+                            string="Seal certificate"
+                            help="PKCS#12 (.p12/.pfx) issued to the company. Every completed document is signed with it (PAdES)."
+                        >
+                            <field name="sign_methode_seal_p12" />
+                            <div class="mt-2">
+                                <label for="sign_methode_seal_password" class="o_light_label me-2" />
+                                <field name="sign_methode_seal_password" password="True" />
+                            </div>
+                            <div class="text-muted small mt-2" invisible="not sign_methode_seal_subject">
+                                <field name="sign_methode_seal_subject" /> — valid until <field name="sign_methode_seal_expiry" />
+                            </div>
+                            <div class="alert alert-warning mt-2 mb-0" role="alert" invisible="sign_methode_seal_p12">
+                                Without a seal certificate documents are stamped but not cryptographically signed.
+                            </div>
+                        </setting>
+                        <setting
+                            string="Timestamp authority"
+                            help="RFC 3161 timestamp server. Every signature and the final document are timestamped by it."
+                        >
+                            <field name="sign_methode_tsa_url" placeholder="https://tsa.example.com" />
+                            <div class="mt-2">
+                                <label for="sign_methode_tsa_username" class="o_light_label me-2" />
+                                <field name="sign_methode_tsa_username" />
+                            </div>
+                            <div class="mt-2">
+                                <label for="sign_methode_tsa_password" class="o_light_label me-2" />
+                                <field name="sign_methode_tsa_password" password="True" />
+                            </div>
+                        </setting>
+                        <setting
+                            string="Long-term validation"
+                            help="Embed certificate status and add a document timestamp (PAdES B-LTA) so the signature can be checked for years."
+                        >
+                            <field name="sign_methode_ltv" />
+                            <div class="mt-2" invisible="not sign_methode_ltv">
+                                <label for="sign_methode_trust_roots" class="o_light_label" />
+                                <field name="sign_methode_trust_roots" placeholder="-----BEGIN CERTIFICATE-----" class="font-monospace small" />
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Signers" name="sign_methode_signers">
+                        <setting string="Identity check" help="How signers prove they own the address the link was sent to.">
+                            <field name="sign_methode_otp_channel" />
+                        </setting>
+                        <setting string="Validity" help="Days a request stays open, and how often signers are reminded.">
+                            <div>
+                                <field name="sign_methode_expiry_days" class="oe_inline" /> days,
+                                reminder every <field name="sign_methode_reminder_days" class="oe_inline" /> days
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,44 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* sign_methode_sms
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0-20261104\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-05 11:40+0000\n"
+"PO-Revision-Date: 2026-11-05 11:31+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: sign_methode_sms
+#. odoo-python
+#: code:addons/sign_methode_sms/models/sign_signer.py:0
+msgid "%(code)s is your code to sign %(document)s. Valid 10 minutes."
+msgstr "%(code)s est votre code pour signer %(document)s. Valable 10 minutes."
+
+#. module: sign_methode_sms
+#: model:ir.model.fields,field_description:sign_methode_sms.field_sign_methode_signer__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: sign_methode_sms
+#: model:ir.model.fields,field_description:sign_methode_sms.field_sign_methode_signer__id
+msgid "ID"
+msgstr "ID"
+
+#. module: sign_methode_sms
+#: model:ir.model,name:sign_methode_sms.model_sign_methode_signer
+msgid "Signer"
+msgstr "Signataire"
+
+#. module: sign_methode_sms
+#. odoo-python
+#: code:addons/sign_methode_sms/models/sign_signer.py:0
+msgid "The SMS could not be sent. Ask the sender to check your number."
+msgstr "Le SMS n'a pas pu être envoyé. Demandez à l'expéditeur de vérifier votre numéro."

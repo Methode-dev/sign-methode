@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="sign_methode.PdfPages">
+        <div class="o_sign_pages" t-ref="root">
+            <div t-if="state.error" class="alert alert-danger">The document could not be displayed.</div>
+            <div t-elif="!state.pages.length" class="o_sign_pages_loading">
+                <span class="o_sign_spinner" />
+            </div>
+            <div
+                t-foreach="state.pages"
+                t-as="p"
+                t-key="p.index"
+                t-att-class="'o_sign_page ' + (props.pageClass || '')"
+                t-att-data-page="p.index"
+                t-att-style="'aspect-ratio: 1 / ' + p.ratio"
+            >
+                <canvas t-att-data-page="p.index" />
+                <div class="o_sign_page_overlay">
+                    <t t-slot="overlay" page="p.index" />
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

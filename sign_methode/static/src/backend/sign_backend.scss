@@ -1,0 +1,16 @@
+.o_sign_methode_kanban {
+    .o_sign_methode_progress {
+        height: 5px;
+        border-radius: 999px;
+        background: var(--sm-raised);
+        overflow: hidden;
+    }
+    .o_sign_methode_progress_bar {
+        height: 100%;
+        background: var(--sm-primary);
+        border-radius: 999px;
+    }
+}
+.o_sign_methode_send .o_sign_methode_send_options summary {
+    cursor: pointer;
+}

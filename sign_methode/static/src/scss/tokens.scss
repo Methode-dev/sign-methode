@@ -1,0 +1,22 @@
+// Local names mapped onto daf_uw_theme's runtime tokens (--m-*), with the
+// theme's values as fallbacks so the module looks right without the theme.
+:root {
+    --sm-page: var(--m-page, #f4f7fe);
+    --sm-surface: var(--m-card, #ffffff);
+    --sm-raised: var(--m-raised, #e3e9f6);
+    --sm-ink: var(--m-text, #111827);
+    --sm-muted: var(--m-text-muted, #5f6674);
+    --sm-primary: var(--m-primary, #0e58f0);
+    --sm-primary-dark: var(--m-primary-dark, #093da8);
+    --sm-accent: var(--m-secondary, #6d3bff);
+    --sm-success: var(--m-success, #3e7c4f);
+    --sm-danger: var(--m-danger, #d32f2f);
+    --sm-line: rgba(17, 24, 39, 0.1);
+    --sm-radius: var(--m-radius-card, 16px);
+    --sm-radius-control: var(--m-radius-control, 8px);
+    --sm-shadow: var(--m-elev-2, 0 8px 24px rgba(14, 88, 240, 0.08), 0 1px 2px rgba(17, 24, 39, 0.06));
+    --sm-shadow-strong: var(--m-elev-3, 0 20px 48px rgba(14, 88, 240, 0.14), 0 2px 6px rgba(17, 24, 39, 0.08));
+    --sm-focus: var(--m-focus-ring, 0 0 0 3px rgba(14, 88, 240, 0.22));
+    --sm-ease: var(--m-ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+    --sm-dur: var(--m-dur-base, 240ms);
+}

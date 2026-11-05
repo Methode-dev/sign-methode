@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="sign_methode.TemplateEditor">
+        <div class="o_action o_sign_editor" tabindex="0" t-on-keydown="onKeydown">
+            <div class="o_sign_editor_bar">
+                <button class="btn btn-link px-1" t-on-click="back" title="Back"><i class="fa fa-arrow-left" /></button>
+                <div class="o_sign_editor_title">
+                    <div class="fw-bold" t-esc="state.data.name" />
+                    <div class="text-muted small">
+                        <t t-esc="state.fields.length" /> field(s)
+                        <span t-if="state.dirty" class="ms-1">· unsaved changes</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" t-on-click="save" t-if="!readonly" t-att-disabled="!state.dirty or state.saving">Save</button>
+            </div>
+            <div class="o_sign_editor_body">
+                <aside class="o_sign_editor_palette" t-if="!readonly">
+                    <div class="o_sign_editor_section">Signer</div>
+                    <div class="o_sign_editor_roles">
+                        <button
+                            t-foreach="state.data.roles"
+                            t-as="role"
+                            t-key="role.id"
+                            t-att-class="'o_sign_editor_role o_sign_color_' + role.color + (state.roleId === role.id ? ' active' : '')"
+                            t-on-click="() => this.state.roleId = role.id"
+                        >
+                            <span class="o_sign_editor_dot" />
+                            <t t-esc="role.name" />
+                        </button>
+                    </div>
+                    <div class="o_sign_editor_section">Fields</div>
+                    <div class="text-muted small mb-2">Drag onto the page, or click to add.</div>
+                    <div
+                        t-foreach="state.data.types"
+                        t-as="type"
+                        t-key="type.key"
+                        class="o_sign_editor_tool"
+                        draggable="true"
+                        t-on-dragstart="(ev) => this.onPaletteDragStart(type.key, ev)"
+                        t-on-click="() => this.onPaletteClick(type.key)"
+                    >
+                        <i t-att-class="'fa ' + icons[type.key]" />
+                        <t t-esc="type.label" />
+                    </div>
+                </aside>
+                <main class="o_sign_editor_canvas" t-on-pointerdown.self="() => this.state.selected = null">
+                    <SignPdfPages url="state.data.pdf_url">
+                        <t t-set-slot="overlay" t-slot-scope="scope">
+                            <div
+                                class="o_sign_editor_drop"
+                                t-on-dragover="onPageDragOver"
+                                t-on-drop="(ev) => this.onPageDrop(scope.page, ev)"
+                                t-on-pointerdown.self="() => this.state.selected = null"
+                            >
+                                <div
+                                    t-foreach="fieldsOnPage(scope.page)"
+                                    t-as="f"
+                                    t-key="f.key"
+                                    t-att-class="'o_sign_editor_field o_sign_color_' + roleColor(f.role_id) + (state.selected === f.key ? ' selected' : '')"
+                                    t-att-style="fieldStyle(f)"
+                                    t-on-pointerdown="(ev) => this.onFieldPointerDown(f, 'move', ev)"
+                                >
+                                    <span class="o_sign_editor_field_label">
+                                        <i t-att-class="'fa ' + icons[f.type]" />
+                                        <t t-esc="f.placeholder or typeLabel(f.type)" />
+                                        <t t-if="f.required">*</t>
+                                    </span>
+                                    <span class="o_sign_editor_handle" t-if="!readonly" t-on-pointerdown="(ev) => this.onFieldPointerDown(f, 'resize', ev)" />
+                                </div>
+                            </div>
+                        </t>
+                    </SignPdfPages>
+                </main>
+                <aside class="o_sign_editor_props" t-if="selected">
+                    <div class="o_sign_editor_section">Field</div>
+                    <label class="form-label small">Signer</label>
+                    <select class="form-select mb-3" t-att-disabled="readonly" t-on-change="(ev) => this.updateSelected('role_id', parseInt(ev.target.value))">
+                        <option t-foreach="state.data.roles" t-as="role" t-key="role.id" t-att-value="role.id" t-att-selected="role.id === selected.role_id" t-esc="role.name" />
+                    </select>
+                    <label class="form-label small">Type</label>
+                    <select class="form-select mb-3" t-att-disabled="readonly" t-on-change="(ev) => this.updateSelected('type', ev.target.value)">
+                        <option t-foreach="state.data.types" t-as="type" t-key="type.key" t-att-value="type.key" t-att-selected="type.key === selected.type" t-esc="type.label" />
+                    </select>
+                    <label class="form-label small">Placeholder</label>
+                    <input class="form-control mb-3" t-att-value="selected.placeholder" t-att-disabled="readonly" t-on-change="(ev) => this.updateSelected('placeholder', ev.target.value)" />
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="o_sign_required" t-att-checked="selected.required" t-att-disabled="readonly" t-on-change="(ev) => this.updateSelected('required', ev.target.checked)" />
+                        <label class="form-check-label" for="o_sign_required">Required</label>
+                    </div>
+                    <div class="text-muted small mb-3">Page <t t-esc="selected.page + 1" /> · arrows move it, Shift for bigger steps.</div>
+                    <button class="btn btn-outline-danger w-100" t-if="!readonly" t-on-click="removeSelected"><i class="fa fa-trash me-1" />Remove</button>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_move_form" model="ir.ui.view">
+        <field name="name">account.move.form.sign_methode</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_sign_send"
+                    type="object"
+                    string="Send for signature"
+                    icon="fa-pencil"
+                    invisible="state != 'posted' or move_type not in ('out_invoice', 'out_refund') or sign_state in ('sent', 'completed')"
+                    groups="sign_methode.group_user"
+                />
+            </xpath>
+            <div name="button_box" position="inside">
+                <button
+                    name="action_view_sign_requests"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-pencil-square-o"
+                    invisible="not sign_request_count"
+                    groups="sign_methode.group_user"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_value"><field name="sign_state" readonly="1" /></span>
+                        <span class="o_stat_text">Signature</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

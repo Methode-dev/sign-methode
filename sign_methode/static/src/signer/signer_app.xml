@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="sign_methode.SignerApp">
+        <div class="o_sign_app" t-att-data-step="state.step">
+            <header class="o_sign_topbar">
+                <div class="o_sign_topbar_inner">
+                    <div class="o_sign_brand">
+                        <img t-att-src="props.logo or '/web/binary/company_logo'" alt="" class="o_sign_logo" />
+                    </div>
+                    <div class="o_sign_doc_title" t-if="state.info">
+                        <div class="o_sign_doc_name" t-esc="state.info.document" />
+                        <div class="o_sign_doc_ref" t-esc="state.info.reference" />
+                    </div>
+                    <div class="o_sign_topbar_actions" t-if="state.step === 'document' and state.pagesReady">
+                        <div class="o_sign_progress" t-att-title="doneCount + ' / ' + requiredCount">
+                            <div class="o_sign_progress_track">
+                                <div class="o_sign_progress_fill" t-att-style="'width:' + progressPct + '%'" />
+                            </div>
+                            <span class="o_sign_progress_label"><t t-esc="doneCount" /> / <t t-esc="requiredCount" /></span>
+                        </div>
+                        <button class="btn btn-secondary o_sign_btn_next d-none d-md-inline-flex" t-on-click="onNext" t-if="!isComplete">
+                            <t t-if="state.current">Next</t><t t-else="">Start</t>
+                            <i class="fa fa-arrow-down ms-2" />
+                        </button>
+                        <button class="btn btn-primary o_sign_btn_goto" t-on-click="isComplete ? openFinish : onGoToSignature">
+                            <t t-if="isComplete">Finish</t>
+                            <t t-else="">Go to signature</t>
+                            <i class="fa fa-pencil ms-2" t-if="!isComplete" />
+                            <i class="fa fa-check ms-2" t-else="" />
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="o_sign_main">
+                <div t-if="state.step === 'loading'" class="o_sign_center"><span class="o_sign_spinner" /></div>
+
+                <!-- Welcome -->
+                <section t-if="state.step === 'welcome'" class="o_sign_card o_sign_welcome">
+                    <div class="o_sign_card_icon"><i class="fa fa-file-text-o" /></div>
+                    <p class="o_sign_eyebrow"><t t-esc="state.info.sender" /> · <t t-esc="state.info.company" /></p>
+                    <h1 class="o_sign_h1">Please sign “<t t-esc="state.info.document" />”</h1>
+                    <p class="o_sign_muted">Hello <t t-esc="state.info.signer.name" />, you are asked to review and sign this document electronically.</p>
+                    <blockquote t-if="state.info.message" class="o_sign_message" t-esc="state.info.message" />
+                    <ul class="o_sign_facts">
+                        <li t-if="state.info.expire_on"><i class="fa fa-clock-o" /> Open until <t t-esc="formatDate(state.info.expire_on)" /></li>
+                        <li t-if="state.info.otp_channel !== 'none'"><i class="fa fa-shield" /> A one-time code confirms it is you</li>
+                        <li><i class="fa fa-lock" /> Sealed and timestamped once signed</li>
+                    </ul>
+                    <div t-if="state.info.others.length" class="o_sign_others">
+                        <div class="o_sign_muted small mb-1">Other signers</div>
+                        <div t-foreach="state.info.others" t-as="o" t-key="o_index" class="o_sign_other">
+                            <span t-esc="o.name" />
+                            <span t-att-class="'o_sign_badge o_sign_badge_' + o.state">
+                                <t t-if="o.state === 'signed'">Signed</t>
+                                <t t-elif="o.state === 'declined'">Declined</t>
+                                <t t-else="">Pending</t>
+                            </span>
+                        </div>
+                    </div>
+                    <div t-if="state.error" class="o_sign_error" t-esc="state.error" />
+                    <button class="btn btn-primary btn-lg w-100 o_sign_start" t-on-click="onStart" t-att-disabled="state.busy">
+                        Review and sign <i class="fa fa-arrow-right ms-2" />
+                    </button>
+                </section>
+
+                <!-- One-time code -->
+                <section t-if="state.step === 'otp'" class="o_sign_card o_sign_otp">
+                    <div class="o_sign_card_icon"><i class="fa fa-shield" /></div>
+                    <h1 class="o_sign_h1">Confirm it is you</h1>
+                    <p class="o_sign_muted" t-esc="otpLabel" />
+                    <input
+                        t-ref="code"
+                        class="form-control o_sign_code"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        autofocus="autofocus"
+                        maxlength="6"
+                        placeholder="••••••"
+                        aria-label="Verification code"
+                        t-on-input="onCodeInput"
+                        t-on-keydown="(ev) => ev.key === 'Enter' and this.verifyCode()"
+                    />
+                    <div t-if="state.error" class="o_sign_error" t-esc="state.error" />
+                    <button class="btn btn-primary btn-lg w-100" t-on-click="verifyCode" t-att-disabled="state.busy or state.code.length !== 6">
+                        Verify
+                    </button>
+                    <button class="btn btn-link o_sign_resend" t-on-click="sendCode" t-att-disabled="state.resendIn > 0 or state.busy">
+                        <t t-if="state.resendIn > 0">Send a new code in <t t-esc="state.resendIn" />s</t>
+                        <t t-else="">Send a new code</t>
+                    </button>
+                </section>
+
+                <!-- Document -->
+                <section t-if="state.step === 'document'" class="o_sign_viewer">
+                    <SignPdfPages url="documentUrl" onLoaded="() => this.state.pagesReady = true">
+                        <t t-set-slot="overlay" t-slot-scope="scope">
+                            <t t-foreach="itemsOnPage(scope.page)" t-as="item" t-key="item.id">
+                                <div t-att-class="itemClass(item)" t-att-style="itemStyle(item)" t-att-data-item="item.id">
+                                    <t t-if="item.type === 'signature' or item.type === 'initials'">
+                                        <button t-if="!isFilled(item)" class="o_sign_item_cta" t-on-click="() => this.onClickSignature(item)">
+                                            <i class="fa fa-pencil" />
+                                            <span t-if="item.type === 'signature'">Sign here</span>
+                                            <span t-else="">Initials</span>
+                                        </button>
+                                        <t t-else="">
+                                            <img t-att-src="state.values[item.id]" alt="Signature" class="o_sign_item_img" t-on-click="() => this.onClickSignature(item)" />
+                                            <button class="o_sign_item_clear" title="Clear" t-on-click="() => this.clearItem(item)"><i class="fa fa-times" /></button>
+                                        </t>
+                                    </t>
+                                    <input
+                                        t-elif="item.type === 'text'"
+                                        type="text"
+                                        class="o_sign_item_input"
+                                        t-att-placeholder="item.placeholder"
+                                        t-att-value="state.values[item.id] or ''"
+                                        t-on-input="(ev) => this.onTextInput(item, ev)"
+                                        t-on-focus="() => this.state.current = item.id"
+                                    />
+                                    <input
+                                        t-elif="item.type === 'checkbox'"
+                                        type="checkbox"
+                                        class="o_sign_item_check"
+                                        t-att-checked="state.values[item.id]"
+                                        t-on-change="(ev) => this.onCheck(item, ev)"
+                                    />
+                                    <span t-else="" class="o_sign_item_auto" t-esc="autoValue(item)" />
+                                </div>
+                            </t>
+                        </t>
+                    </SignPdfPages>
+                    <div class="o_sign_viewer_footer">
+                        <button class="btn btn-link text-danger" t-on-click="() => this.state.declineOpen = true">Decline to sign</button>
+                    </div>
+                    <!-- Mobile action bar -->
+                    <div class="o_sign_mobilebar d-md-none" t-if="state.pagesReady">
+                        <button class="btn btn-secondary" t-on-click="onNext" t-if="!isComplete">Next field</button>
+                        <button class="btn btn-primary flex-grow-1" t-on-click="isComplete ? openFinish : onGoToSignature">
+                            <t t-if="isComplete">Finish</t><t t-else="">Go to signature</t>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Outcomes -->
+                <section t-if="state.step === 'done'" class="o_sign_card o_sign_done">
+                    <div class="o_sign_card_icon o_sign_card_icon_success"><i class="fa fa-check" /></div>
+                    <t t-if="state.info.request_state === 'completed'">
+                        <h1 class="o_sign_h1">The document is signed</h1>
+                        <p class="o_sign_muted">Every party has signed. Your copy carries an electronic seal, a timestamp and a certificate of completion.</p>
+                        <a t-if="state.info.can_download" t-att-href="downloadUrl" class="btn btn-primary btn-lg w-100 o_sign_download">
+                            <i class="fa fa-download me-2" />Download the signed document
+                        </a>
+                        <button t-else="" class="btn btn-primary btn-lg w-100" t-on-click="onStart">
+                            <i class="fa fa-download me-2" />Verify to download
+                        </button>
+                    </t>
+                    <t t-else="">
+                        <h1 class="o_sign_h1">Thank you, you signed</h1>
+                        <p class="o_sign_muted">We are waiting for the other signers. You will receive the signed document by e-mail as soon as everyone has signed.</p>
+                    </t>
+                </section>
+                <section t-if="state.step === 'declined'" class="o_sign_card">
+                    <div class="o_sign_card_icon o_sign_card_icon_muted"><i class="fa fa-ban" /></div>
+                    <h1 class="o_sign_h1">You declined to sign</h1>
+                    <p class="o_sign_muted">The sender has been informed.</p>
+                </section>
+                <section t-if="state.step === 'waiting'" class="o_sign_card">
+                    <div class="o_sign_card_icon"><i class="fa fa-hourglass-half" /></div>
+                    <h1 class="o_sign_h1">Not your turn yet</h1>
+                    <p class="o_sign_muted">Another party signs first. You will receive an e-mail when it is your turn.</p>
+                </section>
+                <section t-if="state.step === 'closed'" class="o_sign_card">
+                    <div class="o_sign_card_icon o_sign_card_icon_muted"><i class="fa fa-lock" /></div>
+                    <h1 class="o_sign_h1">This request is closed</h1>
+                    <p class="o_sign_muted">It was cancelled, declined by another party, or has expired. Contact the sender if you still need to sign.</p>
+                </section>
+            </main>
+
+            <!-- Finish sheet -->
+            <div t-if="state.finishOpen" class="o_sign_sheet_backdrop" t-on-click.self="() => this.state.finishOpen = false">
+                <div class="o_sign_sheet" role="dialog" aria-modal="true">
+                    <h2 class="o_sign_h2">Ready to sign</h2>
+                    <p class="o_sign_muted">You filled every required field of “<t t-esc="state.info.document" />”.</p>
+                    <label class="o_sign_consent">
+                        <input type="checkbox" t-model="state.consent" />
+                        <span>I have read the document and I agree to sign it electronically. My electronic signature has the same value as my handwritten signature.</span>
+                    </label>
+                    <div t-if="state.error" class="o_sign_error" t-esc="state.error" />
+                    <div class="o_sign_sheet_actions">
+                        <button class="btn btn-secondary" t-on-click="() => this.state.finishOpen = false">Review again</button>
+                        <button class="btn btn-primary btn-lg o_sign_submit" t-on-click="onSign" t-att-disabled="!state.consent or state.busy">
+                            <span t-if="state.busy" class="o_sign_spinner o_sign_spinner_sm me-2" />Sign the document
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decline sheet -->
+            <div t-if="state.declineOpen" class="o_sign_sheet_backdrop" t-on-click.self="() => this.state.declineOpen = false">
+                <div class="o_sign_sheet" role="dialog" aria-modal="true">
+                    <h2 class="o_sign_h2">Decline to sign</h2>
+                    <p class="o_sign_muted">The request will be closed for every signer and the sender informed.</p>
+                    <textarea class="form-control mb-3" rows="3" placeholder="Reason (optional)" t-model="state.declineReason" />
+                    <div t-if="state.error" class="o_sign_error" t-esc="state.error" />
+                    <div class="o_sign_sheet_actions">
+                        <button class="btn btn-secondary" t-on-click="() => this.state.declineOpen = false">Back</button>
+                        <button class="btn btn-danger" t-on-click="onDecline" t-att-disabled="state.busy">Decline</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
