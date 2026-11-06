@@ -207,10 +207,20 @@ def append_pdf(pdf_bytes, extra_bytes):
 BLOCKS_PER_PAGE = 4
 
 
+def _fit(c, text, font, size, max_w):
+    """``text`` cut with an ellipsis to fit ``max_w`` points."""
+    if c.stringWidth(text, font, size) <= max_w:
+        return text
+    while text and c.stringWidth(text + "…", font, size) > max_w:
+        text = text[:-1]
+    return text.rstrip() + "…"
+
+
 def signature_pages(title, subtitle, signers_info, labels):
     """Render the signature page(s) and the placement of each signer's fields.
 
-    ``signers_info`` is a list of ``{name, email, role}``; ``labels`` holds the
+    ``signers_info`` is a list of ``{name, capacity, email, role}`` (capacity:
+    "legal representative of Acme", or empty); ``labels`` holds the
     translated strings (``signature``, ``date``, ``footer``). Returns
     ``(pdf_bytes, items)`` where each item carries ``signer_index`` and page
     numbers relative to the returned document.
@@ -243,14 +253,24 @@ def signature_pages(title, subtitle, signers_info, labels):
             c.setStrokeColor(LINE)
             c.setLineWidth(0.8)
             c.roundRect(margin, y, width - 2 * margin, block_h, 8, stroke=1, fill=0)
-            c.setFillColor(INK)
-            c.setFont("Helvetica-Bold", 11.5)
-            c.drawString(margin + 12, y_top - 20, info["name"][:60])
+            # Left column, up to the signature line.
+            text_w = width - 2 * margin - 36 - 70 * mm
+            lines = [
+                (info["name"], "Helvetica-Bold", 11.5, INK),
+                (info.get("capacity"), "Helvetica", 9.5, INK),
+                (info.get("email"), "Helvetica", 9, MUTED),
+                (info.get("role"), "Helvetica", 9, MUTED),
+            ]
+            line_y = y_top - 20
+            for text, font, size, color in lines:
+                if not text:
+                    continue
+                c.setFont(font, size)
+                c.setFillColor(color)
+                c.drawString(margin + 12, line_y, _fit(c, text, font, size, text_w))
+                line_y -= 13.5
             c.setFont("Helvetica", 9)
             c.setFillColor(MUTED)
-            c.drawString(margin + 12, y_top - 34, (info.get("email") or "")[:70])
-            if info.get("role"):
-                c.drawString(margin + 12, y_top - 47, info["role"][:70])
             c.drawString(margin + 12, y + 12, labels["date"])
             sig_w, sig_h = 70 * mm, block_h - 14 * mm
             sig_x = width - margin - 12 - sig_w

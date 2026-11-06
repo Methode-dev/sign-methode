@@ -4,7 +4,7 @@
     "name": "Méthode Sign",
     "summary": "Simple PDF e-signature: OTP, guided signing, PAdES seal, "
     "RFC 3161 timestamps and a hash-chained audit trail",
-    "version": "19.0.1.0.1",
+    "version": "19.0.1.0.2",
     "category": "Productivity/Sign",
     "author": "Méthode",
     "website": "https://github.com/Methode-dev/sign-methode",

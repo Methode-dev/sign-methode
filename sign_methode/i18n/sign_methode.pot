@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0-20261104\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:40+0000\n"
-"PO-Revision-Date: 2026-11-05 11:40+0000\n"
+"POT-Creation-Date: 2026-11-06 10:08+0000\n"
+"PO-Revision-Date: 2026-11-06 10:08+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -24,6 +24,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/sign_methode/models/sign_request.py:0
 msgid "%(name)s declined to sign: %(reason)s"
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "%(name)s, legal representative of %(company)s"
 msgstr ""
 
 #. module: sign_methode
@@ -53,7 +59,22 @@ msgstr ""
 #. module: sign_methode
 #. odoo-python
 #: code:addons/sign_methode/models/sign_signer.py:0
+#: code:addons/sign_methode/wizards/sign_send.py:0
+msgid "%s is a company: choose the legal representative who signs for it."
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
 msgid "%s is not an e-mail address."
+msgstr ""
+
+#. module: sign_methode
+#. odoo-javascript
+#: code:addons/sign_methode/static/src/signer/signer_app.xml:0
+msgid ""
+", you are asked to review and sign this document electronically as legal "
+"representative of"
 msgstr ""
 
 #. module: sign_methode
@@ -79,7 +100,7 @@ msgid ""
 "    <p style=\"margin: 0 0 16px;\">Hello <t t-out=\"object.name or ''\">Alice</t>,</p>\n"
 "    <p style=\"margin: 0 0 16px;\">\n"
 "        <strong t-out=\"object.request_id.user_id.name or object.request_id.company_id.name or ''\">Marc</strong>\n"
-"        sent you <strong t-out=\"object.request_id.name or ''\">Contract</strong> to sign.\n"
+"        sent you <strong t-out=\"object.request_id.name or ''\">Contract</strong> to sign<t t-if=\"object.company_name\"> as legal representative of <strong t-out=\"object.company_name or ''\">Acme</strong></t>.\n"
 "    </p>\n"
 "    <t t-if=\"object.request_id.message\">\n"
 "        <blockquote style=\"margin: 0 0 16px; padding: 12px 16px; background: #F4F7FE; border-radius: 8px; color: #5F6674;\" t-out=\"object.request_id.message or ''\" data-o-mail-quote-node=\"1\" data-o-mail-quote=\"1\">Message</blockquote>\n"
@@ -123,9 +144,7 @@ msgstr ""
 
 #. module: sign_methode
 #: model_terms:ir.ui.view,arch_db:sign_methode.sign_send_view_form
-msgid ""
-"<i class=\"fa fa-file-pdf-o me-1\"/>The record's own PDF will be signed. "
-"Upload a file only to sign a different one."
+msgid "<i class=\"fa fa-file-pdf-o me-1\"/>The record's own PDF will be signed."
 msgstr ""
 
 #. module: sign_methode
@@ -150,6 +169,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/sign_methode/static/src/signer/signer_app.xml:0
 msgid "A one-time code confirms it is you"
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_request.py:0
+msgid "A sent request cannot be changed; cancel it instead."
 msgstr ""
 
 #. module: sign_methode
@@ -332,6 +357,12 @@ msgid "Certificate of completion"
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields,help:sign_methode.field_sign_methode_send_signer__partner_is_company
+#: model:ir.model.fields,help:sign_methode.field_sign_methode_signer__partner_is_company
+msgid "Check if the contact is a company, otherwise it is a person"
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_item__type__checkbox
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_template_field__type__checkbox
 msgid "Checkbox"
@@ -444,6 +475,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send__create_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__create_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__create_uid
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__create_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template__create_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template_field__create_uid
 msgid "Created by"
@@ -456,6 +488,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send__create_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__create_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__create_date
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__create_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template__create_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template_field__create_date
 msgid "Created on"
@@ -502,7 +535,8 @@ msgstr ""
 #. module: sign_methode
 #. odoo-javascript
 #: code:addons/sign_methode/static/src/signer/signer_app.xml:0
-#: model:ir.model.fields.selection,name:sign_methode.selection__daf_cabinet__sign_state__declined
+#: model:ir.model.fields.selection,name:sign_methode.selection__account_move__sign_state__declined
+#: model:ir.model.fields.selection,name:sign_methode.selection__agreement__sign_state__declined
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_event__type__decline
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_mixin__sign_state__declined
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_request__state__declined
@@ -550,6 +584,7 @@ msgid "Discard"
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_ir_http__display_name
 #: model:ir.model.fields,field_description:sign_methode.field_res_company__display_name
 #: model:ir.model.fields,field_description:sign_methode.field_res_config_settings__display_name
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_event__display_name
@@ -560,6 +595,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send__display_name
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__display_name
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__display_name
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__display_name
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template__display_name
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template_field__display_name
 msgid "Display Name"
@@ -598,11 +634,6 @@ msgstr ""
 #. module: sign_methode
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_request__document_attachment_id
 msgid "Document to Sign"
-msgstr ""
-
-#. module: sign_methode
-#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__download_token_hash
-msgid "Download Token Hash"
 msgstr ""
 
 #. module: sign_methode
@@ -785,6 +816,13 @@ msgid "Font awesome icon e.g. fa-tasks"
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields,help:sign_methode.field_sign_methode_role__representative_expression
+msgid ""
+"For a company: inline template picking its legal representative, e.g. {{ "
+"object.env.user.partner_id.id }}. Leave empty to choose by hand."
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_item__type__name
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_template_field__type__name
 msgid "Full Name"
@@ -800,6 +838,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_item__h
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template_field__h
 msgid "H"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model,name:sign_methode.model_ir_http
+msgid "HTTP Routing"
 msgstr ""
 
 #. module: sign_methode
@@ -838,6 +881,7 @@ msgid ""
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_ir_http__id
 #: model:ir.model.fields,field_description:sign_methode.field_res_company__id
 #: model:ir.model.fields,field_description:sign_methode.field_res_config_settings__id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_event__id
@@ -848,6 +892,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send__id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__id
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template__id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template_field__id
 msgid "ID"
@@ -940,6 +985,11 @@ msgid "Invalid value in the submission."
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_signer_token__kind__sign
+msgid "Invitation"
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_event__type__notify
 msgid "Invitation sent"
 msgstr ""
@@ -948,6 +998,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_request__message_is_follower
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template__message_is_follower
 msgid "Is Follower"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__partner_is_company
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__partner_is_company
+msgid "Is a Company"
 msgstr ""
 
 #. module: sign_methode
@@ -980,6 +1036,11 @@ msgid "JSON-encoded value entered by the signer."
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__kind
+msgid "Kind"
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__last_notified_on
 msgid "Last Notified On"
 msgstr ""
@@ -991,6 +1052,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send__write_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__write_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__write_uid
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__write_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template__write_uid
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template_field__write_uid
 msgid "Last Updated by"
@@ -1003,6 +1065,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send__write_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__write_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__write_date
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__write_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template__write_date
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_template_field__write_date
 msgid "Last Updated on"
@@ -1018,6 +1081,29 @@ msgstr ""
 msgid ""
 "Leave empty for the simple flow: a signature page is added at the end of the"
 " document, nothing to place."
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__representative_id
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__representative_id
+msgid "Legal Representative"
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_request.py:0
+msgid "Legal representative of"
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_request.py:0
+msgid "Legal representative of %s"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.constraint,message:sign_methode.constraint_sign_methode_signer_token_token_hash_uniq
+msgid "Links are unique."
 msgstr ""
 
 #. module: sign_methode
@@ -1144,7 +1230,8 @@ msgid "Not sealed"
 msgstr ""
 
 #. module: sign_methode
-#: model:ir.model.fields.selection,name:sign_methode.selection__daf_cabinet__sign_state__none
+#: model:ir.model.fields.selection,name:sign_methode.selection__account_move__sign_state__none
+#: model:ir.model.fields.selection,name:sign_methode.selection__agreement__sign_state__none
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_mixin__sign_state__none
 msgid "Not sent"
 msgstr ""
@@ -1182,6 +1269,11 @@ msgstr ""
 #. module: sign_methode
 #: model:ir.model.fields,help:sign_methode.field_sign_methode_template__model_id
 msgid "Offer this template when sending a record of this model."
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__company_name
+msgid "On Behalf Of"
 msgstr ""
 
 #. module: sign_methode
@@ -1316,11 +1408,6 @@ msgid "Page Count"
 msgstr ""
 
 #. module: sign_methode
-#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__partner_id
-msgid "Partner"
-msgstr ""
-
-#. module: sign_methode
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_role__partner_expression
 msgid "Partner Expression"
 msgstr ""
@@ -1451,6 +1538,11 @@ msgid "Remove"
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_role__representative_expression
+msgid "Representative Expression"
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_event__request_id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_item__request_id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__request_id
@@ -1484,6 +1576,12 @@ msgstr ""
 #: model:ir.ui.menu,name:sign_methode.menu_sign_requests
 #: model_terms:ir.ui.view,arch_db:sign_methode.sign_template_view_form
 msgid "Requests"
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_request.py:0
+msgid "Requests start as drafts."
 msgstr ""
 
 #. module: sign_methode
@@ -1715,6 +1813,11 @@ msgid "Sequence"
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__session_salt
+msgid "Session Salt"
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.actions.act_window,name:sign_methode.action_sign_settings
 #: model:ir.ui.menu,name:sign_methode.menu_sign_settings
 msgid "Settings"
@@ -1752,6 +1855,12 @@ msgstr ""
 #. module: sign_methode
 #: model:ir.model,name:sign_methode.model_sign_methode_mixin
 msgid "Signable Document"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send_signer__signatory_id
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__signatory_id
+msgid "Signatory"
 msgstr ""
 
 #. module: sign_methode
@@ -1850,7 +1959,8 @@ msgstr ""
 #. module: sign_methode
 #. odoo-javascript
 #: code:addons/sign_methode/static/src/signer/signer_app.xml:0
-#: model:ir.model.fields.selection,name:sign_methode.selection__daf_cabinet__sign_state__completed
+#: model:ir.model.fields.selection,name:sign_methode.selection__account_move__sign_state__completed
+#: model:ir.model.fields.selection,name:sign_methode.selection__agreement__sign_state__completed
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_event__type__sign
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_mixin__sign_state__completed
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_request__state__completed
@@ -1879,6 +1989,11 @@ msgstr ""
 #. module: sign_methode
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_request__signed_sha256
 msgid "Signed SHA-256"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_signer_token__kind__download
+msgid "Signed copy"
 msgstr ""
 
 #. module: sign_methode
@@ -1911,8 +2026,14 @@ msgstr ""
 #: model:ir.model,name:sign_methode.model_sign_methode_signer
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_event__signer_id
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_item__signer_id
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__signer_id
 #: model_terms:ir.ui.view,arch_db:sign_methode.sign_request_view_search
 msgid "Signer"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model,name:sign_methode.model_sign_methode_signer_token
+msgid "Signer Access Link"
 msgstr ""
 
 #. module: sign_methode
@@ -1942,9 +2063,25 @@ msgid "Signers"
 msgstr ""
 
 #. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "Signers are added to draft requests only."
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_item__type__date
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_template_field__type__date
 msgid "Signing Date"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__partner_id
+msgid "Signing Party"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__signatory_label
+msgid "Signs As"
 msgstr ""
 
 #. module: sign_methode
@@ -2051,6 +2188,12 @@ msgstr ""
 #. module: sign_methode
 #. odoo-python
 #: code:addons/sign_methode/models/sign_request.py:0
+msgid "The document of %s changed after it was sent; it cannot be completed."
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_request.py:0
 msgid "The document of a sent request is frozen."
 msgstr ""
 
@@ -2061,8 +2204,34 @@ msgid "The document was signed by every party."
 msgstr ""
 
 #. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "The evidence of a signature cannot be edited."
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_request.py:0
+msgid "The evidence of a signature request cannot be edited."
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields,help:sign_methode.field_sign_methode_request__document_attachment_id
 msgid "The exact file shown to signers (source plus signature page)."
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,help:sign_methode.field_sign_methode_signer__partner_id
+msgid ""
+"The person signing, or the company that signs through its legal "
+"representative."
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,help:sign_methode.field_sign_methode_send_signer__representative_id
+msgid ""
+"The person who signs for the company: receives the link and the code, and "
+"signs as its legal representative."
 msgstr ""
 
 #. module: sign_methode
@@ -2087,6 +2256,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/sign_methode/static/src/signer/signer_app.xml:0
 msgid "The sender has been informed."
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "The signers of a sent request are frozen."
 msgstr ""
 
 #. module: sign_methode
@@ -2198,7 +2373,12 @@ msgid "To sign"
 msgstr ""
 
 #. module: sign_methode
-#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__token_hash
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer__token_ids
+msgid "Token"
+msgstr ""
+
+#. module: sign_methode
+#: model:ir.model.fields,field_description:sign_methode.field_sign_methode_signer_token__token_hash
 msgid "Token Hash"
 msgstr ""
 
@@ -2337,6 +2517,8 @@ msgid "Waiting for previous signer"
 msgstr ""
 
 #. module: sign_methode
+#: model:ir.model.fields.selection,name:sign_methode.selection__account_move__sign_state__sent
+#: model:ir.model.fields.selection,name:sign_methode.selection__agreement__sign_state__sent
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_mixin__sign_state__sent
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_request__state__sent
 msgid "Waiting for signatures"
@@ -2385,6 +2567,11 @@ msgstr ""
 #. module: sign_methode
 #: model:ir.model.fields,help:sign_methode.field_sign_methode_event__actor
 msgid "Who acted: signer e-mail, user login or 'system'."
+msgstr ""
+
+#. module: sign_methode
+#: model_terms:ir.ui.view,arch_db:sign_methode.sign_send_view_form
+msgid "Who signs for the company"
 msgstr ""
 
 #. module: sign_methode

@@ -24,11 +24,7 @@ class AccountMove(models.Model):
 
     def _sign_get_signers(self):
         self.ensure_one()
-        partner = self.partner_id
-        # Invoices go to the invoice address; prefer a person with an e-mail.
-        if partner and not partner.email and partner.commercial_partner_id.email:
-            partner = partner.commercial_partner_id
-        return [{"partner_id": partner.id}] if partner else []
+        return [self._sign_party(self.partner_id)] if self.partner_id else []
 
     def _sign_on_completed(self, request):
         attachment = request.signed_attachment_id.sudo().copy(
@@ -37,7 +33,7 @@ class AccountMove(models.Model):
         self.message_post(
             body=self.env._(
                 "%(partner)s signed the invoice (%(ref)s).",
-                partner=", ".join(request.signer_ids.mapped("name")),
+                partner=", ".join(s._label() for s in request.signer_ids),
                 ref=request.reference,
             ),
             attachment_ids=attachment.ids,

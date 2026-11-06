@@ -40,7 +40,8 @@
                     <div class="o_sign_card_icon"><i class="fa fa-file-text-o" /></div>
                     <p class="o_sign_eyebrow"><t t-esc="state.info.sender" /> · <t t-esc="state.info.company" /></p>
                     <h1 class="o_sign_h1">Please sign “<t t-esc="state.info.document" />”</h1>
-                    <p class="o_sign_muted">Hello <t t-esc="state.info.signer.name" />, you are asked to review and sign this document electronically.</p>
+                    <p t-if="state.info.signer.company" class="o_sign_muted">Hello <t t-esc="state.info.signer.name" />, you are asked to review and sign this document electronically as legal representative of <strong t-esc="state.info.signer.company" />.</p>
+                    <p t-else="" class="o_sign_muted">Hello <t t-esc="state.info.signer.name" />, you are asked to review and sign this document electronically.</p>
                     <blockquote t-if="state.info.message" class="o_sign_message" t-esc="state.info.message" />
                     <ul class="o_sign_facts">
                         <li t-if="state.info.expire_on"><i class="fa fa-clock-o" /> Open until <t t-esc="formatDate(state.info.expire_on)" /></li>

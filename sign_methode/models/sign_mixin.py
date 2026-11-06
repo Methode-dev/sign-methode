@@ -12,7 +12,8 @@ class SignMethodeMixin(models.AbstractModel):
 
     * ``_sign_get_document()`` -> ``(filename, pdf_bytes)``; defaults to the
       model's first PDF report;
-    * ``_sign_get_signers()`` -> list of ``{"partner_id", "role_id"}``;
+    * ``_sign_get_signers()`` -> list of ``{"partner_id", "role_id"}`` (plus
+      ``representative_id`` for a company; see ``_sign_party()``);
     * ``_sign_on_completed(request)`` / ``_sign_on_declined(request)``.
     """
 
@@ -86,7 +87,33 @@ class SignMethodeMixin(models.AbstractModel):
         """Default signers: the record's partner, if it has one."""
         self.ensure_one()
         partner = self["partner_id"] if "partner_id" in self._fields else None
-        return [{"partner_id": partner.id}] if partner else []
+        return [self._sign_party(partner)] if partner else []
+
+    @api.model
+    def _sign_party(self, partner, **vals):
+        """Signer values for ``partner``. A company signs through a person: a
+        contact of the company (``Acme, Jane Doe``), else its only contact, is
+        proposed as legal representative; the sender confirms it."""
+        company = partner.commercial_partner_id
+        if not company.is_company:
+            return dict(vals, partner_id=partner.id)
+        contacts = company.child_ids.filtered(
+            lambda p: not p.is_company and p.type == "contact"
+        )
+        if partner in contacts:
+            representative = partner
+        else:
+            representative = contacts if len(contacts) == 1 else partner.browse()
+        return dict(vals, partner_id=company.id, representative_id=representative.id)
+
+    @api.model
+    def _sign_company_party(self):
+        """The company as a signer, through the user who sends the request."""
+        return {
+            "partner_id": self.env.company.partner_id.id,
+            "representative_id": self.env.user.partner_id.id,
+            "role_id": self.env.ref("sign_methode.role_company").id,
+        }
 
     def _sign_get_document_name(self):
         self.ensure_one()

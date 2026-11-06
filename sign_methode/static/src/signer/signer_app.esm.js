@@ -202,7 +202,7 @@ export class SignerApp extends Component {
 
     autoValue(item) {
         if (item.type === "name") {
-            return this.state.info.signer.name;
+            return this.state.info.signer.label;
         }
         return luxon.DateTime.now().toLocaleString(luxon.DateTime.DATE_SHORT);
     }

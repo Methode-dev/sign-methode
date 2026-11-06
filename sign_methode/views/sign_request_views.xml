@@ -113,6 +113,15 @@
                                 <list editable="bottom" decoration-success="state == 'signed'" decoration-danger="state == 'declined'" decoration-muted="state == 'waiting'">
                                     <field name="sequence" widget="handle" />
                                     <field name="partner_id" />
+                                    <field name="partner_is_company" column_invisible="True" />
+                                    <field
+                                        name="representative_id"
+                                        readonly="not partner_is_company"
+                                        required="partner_is_company"
+                                        context="{'default_parent_id': partner_id, 'show_email': True}"
+                                        options="{'no_quick_create': False}"
+                                    />
+                                    <field name="company_name" column_invisible="True" />
                                     <field name="name" column_invisible="True" />
                                     <field name="email" />
                                     <field name="phone" optional="hide" />

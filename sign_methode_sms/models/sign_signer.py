@@ -9,14 +9,14 @@ class SignMethodeSigner(models.Model):
 
     def _send_otp_sms(self, code):
         self.ensure_one()
-        number = self.partner_id._phone_format(number=self.phone) or self.phone
+        number = self.signatory_id._phone_format(number=self.phone) or self.phone
         sms = (
             self.env["sms.sms"]
             .sudo()
             .create(
                 {
                     "number": number,
-                    "partner_id": self.partner_id.id,
+                    "partner_id": self.signatory_id.id,
                     "body": self.env._(
                         "%(code)s is your code to sign %(document)s. Valid 10 minutes.",
                         code=code,

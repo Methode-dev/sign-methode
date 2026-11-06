@@ -17,6 +17,8 @@
         <field name="name">Company</field>
         <field name="sequence">20</field>
         <field name="color">10</field>
-        <field name="partner_expression">{{ object.env.user.partner_id.id }}</field>
+        <!-- The company signs, through the user who sends the request. -->
+        <field name="partner_expression">{{ object.env.company.partner_id.id }}</field>
+        <field name="representative_expression">{{ object.env.user.partner_id.id }}</field>
     </record>
 </odoo>

@@ -10,14 +10,14 @@
         >{{ 'Reminder: ' if ctx.get('sign_kind') == 'remind' else '' }}{{ object.request_id.user_id.name or object.request_id.company_id.name }} asks you to sign "{{ object.request_id.name }}"</field>
         <field name="email_from">{{ object.request_id.company_id.email_formatted or user.email_formatted }}</field>
         <field name="email_to">{{ object.email }}</field>
-        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="lang">{{ object.signatory_id.lang }}</field>
         <field name="auto_delete" eval="True" />
         <field name="body_html" type="html">
 <div style="font-family: Nunito, Helvetica, Arial, sans-serif; color: #111827; max-width: 560px;">
     <p style="margin: 0 0 16px;">Hello <t t-out="object.name or ''">Alice</t>,</p>
     <p style="margin: 0 0 16px;">
         <strong t-out="object.request_id.user_id.name or object.request_id.company_id.name or ''">Marc</strong>
-        sent you <strong t-out="object.request_id.name or ''">Contract</strong> to sign.
+        sent you <strong t-out="object.request_id.name or ''">Contract</strong> to sign<t t-if="object.company_name"> as legal representative of <strong t-out="object.company_name or ''">Acme</strong></t>.
     </p>
     <t t-if="object.request_id.message">
         <blockquote style="margin: 0 0 16px; padding: 12px 16px; background: #F4F7FE; border-radius: 8px; color: #5F6674;" t-out="object.request_id.message or ''">Message</blockquote>
@@ -40,7 +40,7 @@
         <field name="subject">Your signature code: {{ ctx.get('sign_otp') }}</field>
         <field name="email_from">{{ object.request_id.company_id.email_formatted or user.email_formatted }}</field>
         <field name="email_to">{{ object.email }}</field>
-        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="lang">{{ object.signatory_id.lang }}</field>
         <field name="auto_delete" eval="True" />
         <field name="body_html" type="html">
 <div style="font-family: Nunito, Helvetica, Arial, sans-serif; color: #111827; max-width: 560px;">
@@ -58,7 +58,7 @@
         <field name="subject">"{{ object.request_id.name }}" is signed</field>
         <field name="email_from">{{ object.request_id.company_id.email_formatted or user.email_formatted }}</field>
         <field name="email_to">{{ object.email }}</field>
-        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="lang">{{ object.signatory_id.lang }}</field>
         <field name="auto_delete" eval="True" />
         <field name="body_html" type="html">
 <div style="font-family: Nunito, Helvetica, Arial, sans-serif; color: #111827; max-width: 560px;">

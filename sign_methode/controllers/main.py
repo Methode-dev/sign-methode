@@ -25,7 +25,7 @@ class SignMethodeController(http.Controller):
 
     def _set_lang(self, signer):
         """Speak the signer's language, whatever the browser's session says."""
-        lang = signer.partner_id.lang or signer.request_id.company_id.partner_id.lang
+        lang = signer.signatory_id.lang or signer.request_id.company_id.partner_id.lang
         installed = dict(request.env["res.lang"].get_installed())
         if lang not in installed:
             return

@@ -1,6 +1,7 @@
 # Copyright 2026 Méthode
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 import base64
+import io
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -288,3 +289,45 @@ class TestSignFlow(SignCase):
         self.assertEqual(req.state, "sent")
         self.assertEqual(req.signer_ids.mapped("partner_id"), self.alice | self.bob)
         self.assertEqual(req.signer_ids.mapped("state"), ["to_sign", "to_sign"])
+
+    def test_company_signs_through_its_legal_representative(self):
+        Partner = self.env["res.partner"]
+        acme = Partner.create({"name": "Acme SAS", "is_company": True})
+        jane = Partner.create(
+            {"name": "Jane Doe", "email": "jane@acme.example", "parent_id": acme.id}
+        )
+        # A contact of the company is proposed as its representative.
+        self.assertEqual(
+            self.env["sign.methode.mixin"]._sign_party(jane),
+            {"partner_id": acme.id, "representative_id": jane.id},
+        )
+        with self.assertRaisesRegex(UserError, "legal representative"):
+            self.new_request(partners=acme)
+        req = self.new_request(
+            signer_ids=[(0, 0, {"partner_id": acme.id, "representative_id": jane.id})]
+        )
+        signer = req.signer_ids
+        # The person signs: link, code and name are hers, for the company.
+        self.assertEqual(signer.signatory_id, jane)
+        self.assertEqual(
+            (signer.name, signer.email, signer.company_name),
+            ("Jane Doe", "jane@acme.example", "Acme SAS"),
+        )
+        self.assertEqual(signer._label(), "Jane Doe, legal representative of Acme SAS")
+        page = sign_pdf.PdfReader(io.BytesIO(req.document_attachment_id.raw)).pages[-1]
+        self.assertIn("Legal representative of Acme SAS", page.extract_text())
+        self.sign(signer)
+        self.assertEqual(req.state, "completed")
+        rows = [
+            row
+            for section in req._evidence_data()["sections"]
+            for row in section["rows"]
+        ]
+        self.assertIn(["Legal representative of", "Acme SAS"], rows)
+
+    def test_representative_only_for_companies(self):
+        req = self.new_request(partners=self.alice)
+        self.assertFalse(req.signer_ids.representative_id)
+        self.assertFalse(req.signer_ids.company_name)
+        self.assertEqual(req.signer_ids._label(), "Alice Martin")
+

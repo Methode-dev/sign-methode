@@ -26,9 +26,12 @@ class TestAgreementSign(SignCase):
         )
         action = agreement.action_sign_send()
         wizard = self.env["sign.methode.send"].with_context(action["context"]).create({})
-        self.assertEqual(
-            wizard.signer_ids.mapped("partner_id"), self.alice | self.env.user.partner_id
-        )
+        # Alice signs in person; the company through the user who sends it.
+        alice, company = wizard.signer_ids
+        self.assertEqual(alice.partner_id, self.alice)
+        self.assertFalse(alice.representative_id)
+        self.assertEqual(company.partner_id, self.env.company.partner_id)
+        self.assertEqual(company.representative_id, self.env.user.partner_id)
         req = self.env["sign.methode.request"].browse(wizard.action_send()["res_id"])
         for signer in req.signer_ids:
             self.sign(signer)

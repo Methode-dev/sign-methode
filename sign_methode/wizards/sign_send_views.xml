@@ -23,8 +23,18 @@
                     <list editable="bottom">
                         <field name="sequence" widget="handle" />
                         <field name="partner_id" required="1" context="{'show_email': True}" options="{'no_quick_create': False}" />
-                        <field name="email" required="1" />
-                        <field name="phone" optional="hide" />
+                        <field name="partner_is_company" column_invisible="True" />
+                        <field
+                            name="representative_id"
+                            readonly="not partner_is_company"
+                            required="partner_is_company"
+                            placeholder="Who signs for the company"
+                            context="{'default_parent_id': partner_id, 'show_email': True}"
+                            options="{'no_quick_create': False}"
+                        />
+                        <field name="signatory_id" column_invisible="True" />
+                        <field name="email" required="1" readonly="not signatory_id" />
+                        <field name="phone" optional="hide" readonly="not signatory_id" />
                         <field name="role_id" optional="show" />
                         <field name="otp_channel" optional="hide" placeholder="Default" />
                     </list>

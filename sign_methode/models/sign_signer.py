@@ -52,6 +52,8 @@ EVIDENCE_FIELDS = {
 FROZEN_FIELDS = {
     "request_id",
     "partner_id",
+    "representative_id",
+    "company_name",
     "name",
     "email",
     "phone",
@@ -75,11 +77,34 @@ class SignMethodeSigner(models.Model):
     )
     request_state = fields.Selection(related="request_id.state", string="Request Status")
     sequence = fields.Integer(default=10)
-    partner_id = fields.Many2one("res.partner", required=True, ondelete="restrict")
+    partner_id = fields.Many2one(
+        "res.partner",
+        "Signing Party",
+        required=True,
+        ondelete="restrict",
+        help="The person signing, or the company that signs through its legal "
+        "representative.",
+    )
+    partner_is_company = fields.Boolean(related="partner_id.is_company")
+    # A company signs through a person: the one who receives the link and the
+    # code, and whose name goes on the signature ("X, legal representative of
+    # Y").
+    representative_id = fields.Many2one(
+        "res.partner",
+        "Legal Representative",
+        ondelete="restrict",
+        domain="[('is_company', '=', False)]",
+    )
+    signatory_id = fields.Many2one(
+        "res.partner", compute="_compute_signatory", string="Signatory"
+    )
+    signatory_label = fields.Char(compute="_compute_signatory", string="Signs As")
     role_id = fields.Many2one("sign.methode.role", ondelete="restrict")
     color = fields.Integer(related="role_id.color")
     # Snapshots: the evidence must show who was asked, not who the partner
-    # became later.
+    # became later. Name, e-mail and mobile are the signatory's (the
+    # representative of a company).
+    company_name = fields.Char("On Behalf Of")
     name = fields.Char(required=True)
     email = fields.Char(required=True)
     phone = fields.Char("Mobile")
@@ -119,12 +144,51 @@ class SignMethodeSigner(models.Model):
     tsa_serial = fields.Char("Timestamp Serial", readonly=True, copy=False)
     decline_reason = fields.Text(readonly=True, copy=False)
 
-    @api.onchange("partner_id")
+    @api.depends("partner_id", "representative_id", "name", "company_name")
+    def _compute_signatory(self):
+        for signer in self:
+            signer.signatory_id = signer.representative_id or signer.partner_id
+            signer.signatory_label = signer._label()
+
+    def _label(self):
+        """How the signer is named on the document: "Jane Doe" or "Jane Doe,
+        legal representative of Acme" (in the context's language)."""
+        self.ensure_one()
+        if not self.company_name:
+            return self.name or ""
+        return self.env._(
+            "%(name)s, legal representative of %(company)s",
+            name=self.name or "",
+            company=self.company_name,
+        )
+
+    @api.model
+    def _snapshot(self, partner, representative):
+        """Who signs, frozen as text: the representative for a company."""
+        company = partner.is_company and partner
+        person = representative if company else partner
+        return {
+            "company_name": company.name if company else False,
+            "name": person.name or (company.name if company else False),
+            "email": person.email,
+            "phone": person.phone,
+        }
+
+    @api.onchange("partner_id", "representative_id")
     def _onchange_partner_id(self):
         for signer in self:
-            signer.name = signer.partner_id.name
-            signer.email = signer.partner_id.email
-            signer.phone = signer.partner_id.phone
+            if not signer.partner_id.is_company:
+                signer.representative_id = False
+            elif not signer.representative_id and len(signer._contacts()) == 1:
+                signer.representative_id = signer._contacts()
+            signer.update(signer._snapshot(signer.partner_id, signer.representative_id))
+
+    def _contacts(self):
+        """The people of the signing company, to pick its representative."""
+        self.ensure_one()
+        return self.partner_id.child_ids.filtered(
+            lambda p: not p.is_company and p.type == "contact"
+        )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -137,9 +201,11 @@ class SignMethodeSigner(models.Model):
             ):
                 raise AccessError(self.env._("Signers are added to draft requests only."))
             partner = Partner.browse(vals.get("partner_id"))
-            vals.setdefault("name", partner.name)
-            vals.setdefault("email", partner.email)
-            vals.setdefault("phone", partner.phone)
+            if not partner.is_company:
+                vals["representative_id"] = False
+            snapshot = self._snapshot(partner, Partner.browse(vals.get("representative_id")))
+            for key, value in snapshot.items():
+                vals.setdefault(key, value)
             if not vals.get("otp_channel"):
                 req = self.env["sign.methode.request"].browse(vals.get("request_id"))
                 vals["otp_channel"] = req.otp_channel or "email"
@@ -153,7 +219,20 @@ class SignMethodeSigner(models.Model):
                 s.request_id.state != "draft" for s in self
             ):
                 raise UserError(self.env._("The signers of a sent request are frozen."))
-        return super().write(vals)
+        if not {"partner_id", "representative_id"} & set(vals):
+            return super().write(vals)
+        Partner = self.env["res.partner"]
+        for signer in self:
+            partner = Partner.browse(vals.get("partner_id", signer.partner_id.id))
+            values = dict(vals)
+            if not partner.is_company:
+                values["representative_id"] = False
+            representative = Partner.browse(
+                values.get("representative_id", signer.representative_id.id)
+            )
+            snapshot = self._snapshot(partner, representative)
+            super(SignMethodeSigner, signer).write(dict(snapshot, **values))
+        return True
 
     @api.constrains("email")
     def _check_email(self):
@@ -163,6 +242,14 @@ class SignMethodeSigner(models.Model):
 
     def _check_reachable(self):
         for signer in self:
+            if signer.partner_id.is_company and not signer.representative_id:
+                raise UserError(
+                    self.env._(
+                        "%s is a company: choose the legal representative who "
+                        "signs for it.",
+                        signer.partner_id.name,
+                    )
+                )
             if not signer.email:
                 raise UserError(self.env._("%s has no e-mail address.", signer.name))
             if signer.otp_channel == "sms" and not signer.phone:
@@ -260,7 +347,7 @@ class SignMethodeSigner(models.Model):
         self.ensure_one()
         if self.otp_channel == "none":
             return True
-        if self.env.user.partner_id == self.partner_id and not self.env.user._is_public():
+        if self.env.user.partner_id == self.signatory_id and not self.env.user._is_public():
             return True
         if not http_request:
             return False
@@ -391,7 +478,7 @@ class SignMethodeSigner(models.Model):
         clean = {}
         for item in mine.sorted(lambda i: (i.page, i.y, i.x)):
             if item.type == "name":
-                clean[item.id] = self.name
+                clean[item.id] = self._label()
             elif item.type == "date":
                 clean[item.id] = self.request_id._format_dt(now, self)
             else:
@@ -416,7 +503,7 @@ class SignMethodeSigner(models.Model):
         if not self.auth_method_label:
             vals["auth_method_label"] = (
                 self.env._("Logged in as %s", self.env.user.login)
-                if self.env.user.partner_id == self.partner_id
+                if self.env.user.partner_id == self.signatory_id
                 else self.env._("Access link sent to %s", self._mask_email(self.email))
             )
         digest = hashlib.sha256(
@@ -465,7 +552,7 @@ class SignMethodeSigner(models.Model):
     def action_sign_now(self):
         """Back-office shortcut: the logged-in user signs their own part."""
         self.ensure_one()
-        if self.partner_id != self.env.user.partner_id:
+        if self.signatory_id != self.env.user.partner_id:
             raise UserError(self.env._("You can only sign for yourself."))
         if self.state != "to_sign":
             raise UserError(self.env._("It is not your turn to sign."))
@@ -495,7 +582,12 @@ class SignMethodeSigner(models.Model):
             "company": req.company_id.name,
             "sender": req.user_id.name,
             "message": req.message or "",
-            "signer": {"name": self.name, "email": self.email},
+            "signer": {
+                "name": self.name,
+                "email": self.email,
+                "company": self.company_name or "",
+                "label": self._label(),
+            },
             "expire_on": fields.Date.to_string(req.expire_on) if req.expire_on else False,
             "otp_channel": self.otp_channel,
             "otp_target": self._mask(self.phone, keep=2)
@@ -504,7 +596,7 @@ class SignMethodeSigner(models.Model):
             "verified": verified,
             "can_download": req.state == "completed" and verified,
             "others": [
-                {"name": s.name, "state": s.state}
+                {"name": s._label(), "state": s.state}
                 for s in req.signer_ids.sorted("sequence")
                 if s != self
             ],

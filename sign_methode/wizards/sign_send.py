@@ -97,9 +97,15 @@ class SignMethodeSend(models.TransientModel):
                 line = unassigned.pop(0)
                 line.role_id = role
                 continue
+            representative = role._get_representative(record) if record else False
             commands.append(
                 Command.create(
-                    {"role_id": role.id, "partner_id": partner.id if partner else False, "sequence": seq}
+                    {
+                        "role_id": role.id,
+                        "partner_id": partner.id if partner else False,
+                        "representative_id": representative.id if representative else False,
+                        "sequence": seq,
+                    }
                 )
             )
         if commands:
@@ -111,6 +117,15 @@ class SignMethodeSend(models.TransientModel):
             raise UserError(self.env._("Add at least one signer."))
         if any(not line.partner_id for line in self.signer_ids):
             raise UserError(self.env._("Choose a contact for every signer."))
+        for line in self.signer_ids:
+            if line.partner_id.is_company and not line.representative_id:
+                raise UserError(
+                    self.env._(
+                        "%s is a company: choose the legal representative who "
+                        "signs for it.",
+                        line.partner_id.name,
+                    )
+                )
         record = self._get_record()
         template = self.template_id
         if self.document:
@@ -139,6 +154,7 @@ class SignMethodeSend(models.TransientModel):
                     Command.create(
                         {
                             "partner_id": line.partner_id.id,
+                            "representative_id": line.representative_id.id,
                             "role_id": line.role_id.id,
                             "sequence": index,
                             "otp_channel": line.otp_channel or self.otp_channel,
@@ -177,7 +193,36 @@ class SignMethodeSendSigner(models.TransientModel):
     wizard_id = fields.Many2one("sign.methode.send", required=True, ondelete="cascade")
     sequence = fields.Integer(default=10)
     partner_id = fields.Many2one("res.partner", "Contact")
-    email = fields.Char(related="partner_id.email", readonly=False)
-    phone = fields.Char(related="partner_id.phone", readonly=False, string="Mobile")
+    partner_is_company = fields.Boolean(related="partner_id.is_company")
+    representative_id = fields.Many2one(
+        "res.partner",
+        "Legal Representative",
+        domain="[('is_company', '=', False)]",
+        help="The person who signs for the company: receives the link and the "
+        "code, and signs as its legal representative.",
+    )
+    # The person who receives the link: the representative of a company.
+    signatory_id = fields.Many2one("res.partner", compute="_compute_signatory_id")
+    email = fields.Char(related="signatory_id.email", readonly=False)
+    phone = fields.Char(related="signatory_id.phone", readonly=False, string="Mobile")
     role_id = fields.Many2one("sign.methode.role", "Role")
     otp_channel = fields.Selection(OTP_CHANNELS, "Verification")
+
+    @api.depends("partner_id", "representative_id")
+    def _compute_signatory_id(self):
+        for line in self:
+            line.signatory_id = (
+                line.representative_id if line.partner_id.is_company else line.partner_id
+            )
+
+    @api.onchange("partner_id")
+    def _onchange_partner_id(self):
+        for line in self:
+            if not line.partner_id.is_company:
+                line.representative_id = False
+                continue
+            contacts = line.partner_id.child_ids.filtered(
+                lambda p: not p.is_company and p.type == "contact"
+            )
+            if line.representative_id not in contacts and len(contacts) == 1:
+                line.representative_id = contacts

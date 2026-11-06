@@ -259,6 +259,11 @@ class SignMethodeRequest(models.Model):
                 [
                     {
                         "name": s.name,
+                        "capacity": self.env._(
+                            "Legal representative of %s", s.company_name
+                        )
+                        if s.company_name
+                        else "",
                         "email": s.email,
                         "role": s.role_id.name or "",
                     }
@@ -419,7 +424,7 @@ class SignMethodeRequest(models.Model):
         self.message_post(
             body=self.env._(
                 "%(name)s declined to sign: %(reason)s",
-                name=signer.name,
+                name=signer._label(),
                 reason=signer.decline_reason or "-",
             ),
             partner_ids=self.user_id.partner_id.ids,
@@ -433,8 +438,8 @@ class SignMethodeRequest(models.Model):
     # Completion: stamp, certificate of completion, PAdES seal
     # ---------------------------------------------------------------------
     def _format_dt(self, dt, signer=None):
-        tz = (signer and signer.partner_id.tz) or self.user_id.tz or "UTC"
-        lang = (signer and signer.partner_id.lang) or self.env.lang
+        tz = (signer and signer.signatory_id.tz) or self.user_id.tz or "UTC"
+        lang = (signer and signer.signatory_id.lang) or self.env.lang
         return "%s (%s)" % (
             format_datetime(
                 self.env(context=dict(self.env.context, lang=lang)),
@@ -475,6 +480,11 @@ class SignMethodeRequest(models.Model):
                 {
                     "title": _("Signer: %s", signer.name),
                     "rows": [
+                        *(
+                            [[_("Legal representative of"), signer.company_name]]
+                            if signer.company_name
+                            else []
+                        ),
                         [_("E-mail"), signer.email],
                         [_("Role"), signer.role_id.name or "-"],
                         [
@@ -580,10 +590,10 @@ class SignMethodeRequest(models.Model):
         entries = [
             {
                 "field": f"Signature{index}",
-                "name": s.name,
+                "name": s._label(),
                 "reason": self.env._(
                     "Signed electronically by %(name)s <%(email)s> — %(method)s",
-                    name=s.name,
+                    name=s._label(),
                     email=s.email,
                     method=s.auth_method_label or "-",
                 ),

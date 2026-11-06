@@ -9,6 +9,7 @@
                 <field name="name" />
                 <field name="color" widget="color_picker" />
                 <field name="partner_expression" />
+                <field name="representative_expression" />
             </list>
         </field>
     </record>
