@@ -14,7 +14,6 @@ from odoo.http import request as http_request
 
 from . import sign_pdf
 from .res_company import OTP_CHANNELS
-from .sign_template import AUTO_TYPES
 
 _logger = logging.getLogger(__name__)
 
@@ -84,7 +83,11 @@ class SignMethodeSigner(models.Model):
     name = fields.Char(required=True)
     email = fields.Char(required=True)
     phone = fields.Char("Mobile")
-    state = fields.Selection(SIGNER_STATES, default="draft", required=True, copy=False)
+    # Read-only so that forms never send it back: it is evidence, written by
+    # the engine only (a new line's default would trip the create guard).
+    state = fields.Selection(
+        SIGNER_STATES, default="draft", required=True, readonly=True, copy=False
+    )
     otp_channel = fields.Selection(OTP_CHANNELS, "Verification", required=True)
 
     token_ids = fields.One2many(

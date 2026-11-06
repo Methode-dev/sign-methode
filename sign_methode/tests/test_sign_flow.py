@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from odoo import fields
 from odoo.exceptions import AccessDenied, AccessError, UserError
-from odoo.tests import new_test_user, tagged
+from odoo.tests import Form, new_test_user, tagged
 
 from odoo.addons.sign_methode.models import sign_pdf, sign_signer
 
@@ -270,3 +270,21 @@ class TestSignFlow(SignCase):
         self.assertEqual(Signer._from_token(first), signer, "shows the closed request")
         req.action_reset_draft()
         self.assertFalse(Signer._from_token(first), "a reset forgets old links")
+
+    def test_reset_request_is_edited_and_sent_again(self):
+        """Through the form, as a user: a request put back to draft takes new
+        signers and is sent again (the list's columns are not evidence)."""
+        user = new_test_user(
+            self.env, login="sign_resender", groups="sign_methode.group_user"
+        )
+        req = self.new_request(partners=self.alice)
+        req.sudo().user_id = user
+        req.action_cancel()
+        req = req.with_user(user)
+        req.action_reset_draft()
+        with Form(req) as form, form.signer_ids.new() as line:
+            line.partner_id = self.bob
+        req.action_send()
+        self.assertEqual(req.state, "sent")
+        self.assertEqual(req.signer_ids.mapped("partner_id"), self.alice | self.bob)
+        self.assertEqual(req.signer_ids.mapped("state"), ["to_sign", "to_sign"])
