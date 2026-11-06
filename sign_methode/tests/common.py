@@ -9,7 +9,7 @@ from asn1crypto import keys, pem, x509
 from PIL import Image, ImageDraw
 
 from odoo.tests import TransactionCase
-from odoo.tools.misc import file_open
+from odoo.tools.misc import file_open, mute_logger
 
 from odoo.addons.sign_methode.models import sign_pdf
 
@@ -60,6 +60,11 @@ class SignCase(TransactionCase):
             }
         )
         cls.pdf = data_file("test_contract.pdf")
+        # Tests sign offline (no fetching of validation data), which pyhanko
+        # warns about on every seal: noise, and a failure for CI log checks.
+        muted = mute_logger("pyhanko.sign.signers.pdf_signer")
+        muted.__enter__()
+        cls.addClassCleanup(muted.__exit__, None, None, None)
         Partner = cls.env["res.partner"]
         cls.alice = Partner.create({"name": "Alice Martin", "email": "alice@example.com"})
         cls.bob = Partner.create({"name": "Bob Durand", "email": "bob@example.com"})

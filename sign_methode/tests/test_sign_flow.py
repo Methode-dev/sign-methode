@@ -8,6 +8,7 @@ from unittest.mock import patch
 from odoo import fields
 from odoo.exceptions import AccessDenied, AccessError, UserError
 from odoo.tests import Form, new_test_user, tagged
+from odoo.tools import mute_logger
 
 from odoo.addons.sign_methode.models import sign_pdf, sign_signer
 
@@ -59,7 +60,8 @@ class TestSignFlow(SignCase):
     def test_without_seal_document_is_stamped_only(self):
         self.company.sign_methode_seal_p12 = False
         req = self.new_request(partners=self.alice)
-        self.sign(req.signer_ids)
+        with mute_logger("odoo.addons.sign_methode.models.sign_request"):
+            self.sign(req.signer_ids)
         self.assertEqual(req.state, "completed")
         self.assertEqual(req.seal_level, "none")
 
