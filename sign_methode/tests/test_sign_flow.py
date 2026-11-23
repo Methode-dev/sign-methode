@@ -31,6 +31,29 @@ class TestSignFlow(SignCase):
         self.assertEqual(set(req.item_ids.mapped("page")), {2})
         self.assertTrue(all(s.sudo().token_ids for s in req.signer_ids))
 
+    def test_mails_to_signers_are_noted_in_the_chatter_without_their_link(self):
+        """The invitation, a reminder and the signed copy leave a note in the
+        request's chatter: who was written to, never the personal link nor
+        the one-time code."""
+        req = self.new_request()
+        alice, bob = req.signer_ids
+
+        notes = req.message_ids.filtered(lambda m: "Invitation sent" in (m.body or ""))
+        self.assertEqual(len(notes), 2, "one per signer at the send")
+        alice._notify("remind")
+        self.assertTrue(
+            req.message_ids.filtered(lambda m: "Reminder sent" in (m.body or ""))
+        )
+        for message in req.message_ids:
+            self.assertNotIn("/sign/", message.body or "", "no personal link")
+        self.assertIn(alice.email, "".join(req.message_ids.mapped("body")))
+
+        self.sign(alice)
+        self.sign(bob)
+        self.assertTrue(
+            req.message_ids.filtered(lambda m: "signed copy was sent" in (m.body or ""))
+        )
+
     def test_full_flow_is_sealed_and_valid(self):
         req = self.new_request()
         alice, bob = req.signer_ids
