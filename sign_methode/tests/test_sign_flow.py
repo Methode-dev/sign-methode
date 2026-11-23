@@ -2,6 +2,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 import base64
 import io
+import re
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -13,6 +14,8 @@ from odoo.tools import mute_logger
 from odoo.addons.sign_methode.models import sign_pdf, sign_signer
 
 from .common import SignCase, test_ca
+
+QUERY_COUNT_NOTIFY = 22
 
 
 @tagged("post_install", "-at_install")
@@ -38,11 +41,13 @@ class TestSignFlow(SignCase):
         req = self.new_request()
         alice, bob = req.signer_ids
 
-        notes = req.message_ids.filtered(lambda m: "Invitation sent" in (m.body or ""))
+        notes = req.message_ids.filtered(
+            lambda m: "Invitation queued" in (m.body or "")
+        )
         self.assertEqual(len(notes), 2, "one per signer at the send")
         alice._notify("remind")
         self.assertTrue(
-            req.message_ids.filtered(lambda m: "Reminder sent" in (m.body or ""))
+            req.message_ids.filtered(lambda m: "Reminder queued" in (m.body or ""))
         )
         for message in req.message_ids:
             self.assertNotIn("/sign/", message.body or "", "no personal link")
@@ -51,8 +56,66 @@ class TestSignFlow(SignCase):
         self.sign(alice)
         self.sign(bob)
         self.assertTrue(
-            req.message_ids.filtered(lambda m: "signed copy was sent" in (m.body or ""))
+            req.message_ids.filtered(
+                lambda m: "signed copy was queued" in (m.body or "")
+            )
         )
+
+    def test_chatter_note_never_holds_the_link_the_mail_carries(self):
+        """The e-mail holds the personal link; no note may hold its token."""
+        req = self.new_request()
+        alice = req.signer_ids[0]
+        alice._notify("remind")
+        mail = self.env["mail.mail"].search(
+            [("model", "=", "sign.methode.signer"), ("res_id", "=", alice.id)],
+            order="id desc",
+            limit=1,
+        )
+        token = re.search(r"/sign/([\w-]{20,})", mail.body_html or "")
+        self.assertTrue(token, "the mail carries the personal link")
+        for message in req.message_ids:
+            self.assertNotIn(token.group(1), message.body or "")
+
+    def test_chatter_note_is_authored_by_the_system_and_reaches_the_record(self):
+        """Same note on the request and on the record it belongs to, written by
+        the system (OdooBot), not by whoever triggered the mail."""
+        host = self.env["res.partner"].create({"name": "Host record"})
+        req = self.new_request()
+        # The wizard only links records using the signature mixin: any record
+        # with a chatter must do, so the link is written directly.
+        req.sudo().write({"res_model": "res.partner", "res_id": host.id})
+        alice = req.signer_ids[0]
+        alice._notify("remind")
+        system = self.env.ref("base.partner_root")
+        for thread in (req, host):
+            note = thread.message_ids.filtered(
+                lambda m: "Reminder queued" in (m.body or "")
+            )
+            self.assertEqual(len(note), 1, thread._name)
+            self.assertEqual(note.author_id, system)
+            self.assertEqual(note.subtype_id, self.env.ref("mail.mt_note"))
+
+    def test_notify_query_count(self):
+        """A reminder stays a small, fixed number of queries."""
+        req = self.new_request()
+        alice = req.signer_ids[0]
+        alice._notify("remind")  # warm the caches
+        with self.assertQueryCount(__system__=QUERY_COUNT_NOTIFY):
+            alice._notify("remind")
+
+    def test_a_failing_chatter_note_does_not_break_the_mail(self):
+        """The note is a courtesy: if posting it raises, the mail is still
+        queued and the caller (the sealing, on the public page) goes on."""
+        req = self.new_request()
+        alice = req.signer_ids[0]
+        mails_before = self.env["mail.mail"].search_count([])
+        model = type(self.env["sign.methode.request"])
+        with (
+            patch.object(model, "message_post", side_effect=ValueError("boom")),
+            self.assertLogs("odoo.addons.sign_methode.models.sign_signer", "ERROR"),
+        ):
+            alice._notify("remind")
+        self.assertGreater(self.env["mail.mail"].search_count([]), mails_before)
 
     def test_full_flow_is_sealed_and_valid(self):
         req = self.new_request()

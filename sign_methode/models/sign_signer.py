@@ -328,16 +328,35 @@ class SignMethodeSigner(models.Model):
         )
         if kind != "completed":
             self.request_id._log("remind" if kind == "remind" else "notify", signer=self)
-        self._post_notified(kind)
+        self._post_notified_safely(kind)
         # Out now, not at the next run of the mail queue.
         cron = self.env.ref("mail.ir_cron_mail_scheduler_action", raise_if_not_found=False)
         if cron:
             cron.sudo()._trigger()
 
-    def _post_notified(self, kind):
-        """Say in the chatter that a mail went to the signer.
+    def _post_notified_safely(self, kind):
+        """Leave the chatter note without ever failing the caller.
 
-        A note, not the mail itself: the invitation carries the signer's
+        ``_notify`` runs inside the sealing of the document, on the public
+        page: a host record whose ``message_post`` raises must not undo a
+        signature for the sake of a note. The note is posted in a savepoint,
+        so a failure rolls back only the note, and is logged.
+        """
+        self.ensure_one()
+        try:
+            with self.env.cr.savepoint():
+                self._post_notified(kind)
+        except Exception:
+            _logger.exception(
+                "Chatter note for the %s mail to signer %s not posted", kind, self.id
+            )
+
+    def _post_notified(self, kind):
+        """Say in the chatter that a mail to the signer was queued.
+
+        "Queued", not "sent": ``send_mail`` only creates the ``mail.mail``,
+        and the delivery can still fail afterwards. A note, not the mail
+        itself: the invitation carries the signer's
         personal link, which exists only in the e-mail (only its hash is
         stored), and the one-time code is never written anywhere. The note
         names the signer and the address, and nothing that opens the document.
@@ -347,28 +366,35 @@ class SignMethodeSigner(models.Model):
         self.ensure_one()
         body = {
             "invite": self.env._(
-                "Invitation sent to %(name)s <%(email)s>.",
+                "Invitation queued for %(name)s <%(email)s>.",
                 name=self._label(),
                 email=self.email,
             ),
             "remind": self.env._(
-                "Reminder sent to %(name)s <%(email)s>.",
+                "Reminder queued for %(name)s <%(email)s>.",
                 name=self._label(),
                 email=self.email,
             ),
             "completed": self.env._(
-                "The signed copy was sent to %(name)s <%(email)s>.",
+                "The signed copy was queued for %(name)s <%(email)s>.",
                 name=self._label(),
                 email=self.email,
             ),
         }[kind]
         # sudo: a signer completing from the public page has no right on
         # the chatter; the text is fixed here and carries no secret.
+        # The author is the system, not whoever triggered the mail: from the
+        # public page that would be the "Public user".
+        author = self.env.ref("base.partner_root")
         request = self.request_id.sudo()
-        request.message_post(body=body, subtype_xmlid="mail.mt_note")
+        request.message_post(
+            body=body, subtype_xmlid="mail.mt_note", author_id=author.id
+        )
         record = request._get_record()
         if record is not None and hasattr(record, "message_post"):
-            record.sudo().message_post(body=body, subtype_xmlid="mail.mt_note")
+            record.sudo().message_post(
+                body=body, subtype_xmlid="mail.mt_note", author_id=author.id
+            )
 
     # ---------------------------------------------------------------------
     # One-time codes

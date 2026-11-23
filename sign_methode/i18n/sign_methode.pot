@@ -990,6 +990,12 @@ msgid "Invitation"
 msgstr ""
 
 #. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "Invitation queued for %(name)s <%(email)s>."
+msgstr ""
+
+#. module: sign_methode
 #: model:ir.model.fields.selection,name:sign_methode.selection__sign_methode_event__type__notify
 msgid "Invitation sent"
 msgstr ""
@@ -1524,6 +1530,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_request__reminder_days
 #: model:ir.model.fields,field_description:sign_methode.field_sign_methode_send__reminder_days
 msgid "Remind Every (days)"
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "Reminder queued for %(name)s <%(email)s>."
 msgstr ""
 
 #. module: sign_methode
@@ -2256,6 +2268,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/sign_methode/static/src/signer/signer_app.xml:0
 msgid "The sender has been informed."
+msgstr ""
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "The signed copy was queued for %(name)s <%(email)s>."
 msgstr ""
 
 #. module: sign_methode

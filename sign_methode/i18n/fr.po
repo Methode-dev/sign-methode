@@ -2904,17 +2904,17 @@ msgstr "— valable jusqu'au"
 #. module: sign_methode
 #. odoo-python
 #: code:addons/sign_methode/models/sign_signer.py:0
-msgid "Invitation sent to %(name)s <%(email)s>."
-msgstr "Invitation envoyée à %(name)s <%(email)s>."
+msgid "Invitation queued for %(name)s <%(email)s>."
+msgstr "Invitation mise en file d'envoi pour %(name)s <%(email)s>."
 
 #. module: sign_methode
 #. odoo-python
 #: code:addons/sign_methode/models/sign_signer.py:0
-msgid "Reminder sent to %(name)s <%(email)s>."
-msgstr "Rappel envoyé à %(name)s <%(email)s>."
+msgid "Reminder queued for %(name)s <%(email)s>."
+msgstr "Rappel mis en file d'envoi pour %(name)s <%(email)s>."
 
 #. module: sign_methode
 #. odoo-python
 #: code:addons/sign_methode/models/sign_signer.py:0
-msgid "The signed copy was sent to %(name)s <%(email)s>."
-msgstr "La copie signée a été envoyée à %(name)s <%(email)s>."
+msgid "The signed copy was queued for %(name)s <%(email)s>."
+msgstr "La copie signée a été mise en file d'envoi pour %(name)s <%(email)s>."
