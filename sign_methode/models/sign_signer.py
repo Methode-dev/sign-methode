@@ -328,10 +328,47 @@ class SignMethodeSigner(models.Model):
         )
         if kind != "completed":
             self.request_id._log("remind" if kind == "remind" else "notify", signer=self)
+        self._post_notified(kind)
         # Out now, not at the next run of the mail queue.
         cron = self.env.ref("mail.ir_cron_mail_scheduler_action", raise_if_not_found=False)
         if cron:
             cron.sudo()._trigger()
+
+    def _post_notified(self, kind):
+        """Say in the chatter that a mail went to the signer.
+
+        A note, not the mail itself: the invitation carries the signer's
+        personal link, which exists only in the e-mail (only its hash is
+        stored), and the one-time code is never written anywhere. The note
+        names the signer and the address, and nothing that opens the document.
+        Posted on the request and, when the request belongs to a record that
+        has a chatter, on that record too.
+        """
+        self.ensure_one()
+        body = {
+            "invite": self.env._(
+                "Invitation sent to %(name)s <%(email)s>.",
+                name=self._label(),
+                email=self.email,
+            ),
+            "remind": self.env._(
+                "Reminder sent to %(name)s <%(email)s>.",
+                name=self._label(),
+                email=self.email,
+            ),
+            "completed": self.env._(
+                "The signed copy was sent to %(name)s <%(email)s>.",
+                name=self._label(),
+                email=self.email,
+            ),
+        }[kind]
+        # sudo: a signer completing from the public page has no right on
+        # the chatter; the text is fixed here and carries no secret.
+        request = self.request_id.sudo()
+        request.message_post(body=body, subtype_xmlid="mail.mt_note")
+        record = request._get_record()
+        if record is not None and hasattr(record, "message_post"):
+            record.sudo().message_post(body=body, subtype_xmlid="mail.mt_note")
 
     # ---------------------------------------------------------------------
     # One-time codes

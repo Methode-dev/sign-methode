@@ -2900,3 +2900,21 @@ msgstr "· modifications non enregistrées"
 #: model_terms:ir.ui.view,arch_db:sign_methode.res_config_settings_view_form
 msgid "— valid until"
 msgstr "— valable jusqu'au"
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "Invitation sent to %(name)s <%(email)s>."
+msgstr "Invitation envoyée à %(name)s <%(email)s>."
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "Reminder sent to %(name)s <%(email)s>."
+msgstr "Rappel envoyé à %(name)s <%(email)s>."
+
+#. module: sign_methode
+#. odoo-python
+#: code:addons/sign_methode/models/sign_signer.py:0
+msgid "The signed copy was sent to %(name)s <%(email)s>."
+msgstr "La copie signée a été envoyée à %(name)s <%(email)s>."
